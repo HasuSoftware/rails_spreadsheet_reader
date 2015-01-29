@@ -16,7 +16,6 @@
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 
 require File.expand_path('../../lib/rails_spreadsheet_reader', __FILE__)
-require File.expand_path('../../lib/rails_spreadsheet_reader/file_utils', __FILE__)
 TEST_DIR =  File.join(File.dirname(__FILE__), 'files')
 
 RSpec.configure do |config|
