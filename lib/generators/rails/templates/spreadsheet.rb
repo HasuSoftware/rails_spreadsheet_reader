@@ -1,4 +1,4 @@
-class <%= @spreadsheet_name %>Spreadsheet < RailsSpreadsheetReader::Row
+class <%= @spreadsheet_name %>Spreadsheet < RailsSpreadsheetReader::Base
 
   # add the columns you want to read:
   # attr_accessor :attr1, :attr2, :attr3
