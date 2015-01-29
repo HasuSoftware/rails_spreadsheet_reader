@@ -19,6 +19,7 @@ Or install it yourself as:
 ## Usage
 
 Run
+
     $ rails g spreadsheet name
 
 to create a spreadsheet reader into app/spreadsheet_reader directory.
