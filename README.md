@@ -24,7 +24,7 @@ Run
 
 to create a spreadsheet reader into app/spreadsheet_reader directory.
 
-Edit the columns, validate_multiple_rows and persist methods depending on your use-case.
+Edit the *self.columns*, *self.validate_multiple_rows* and *self.persist* methods depending on your use-case.
 
 ## Example
 
