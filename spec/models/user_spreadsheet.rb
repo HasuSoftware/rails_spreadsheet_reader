@@ -1,4 +1,4 @@
-class UserSpreadsheet < RailsSpreadsheetReader::Row
+class UserSpreadsheet < RailsSpreadsheetReader::Base
 
   attr_accessor :username, :email, :gender
 

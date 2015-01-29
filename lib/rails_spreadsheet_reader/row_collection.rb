@@ -8,9 +8,9 @@ module RailsSpreadsheetReader
       self.rows = []
     end
 
-    def push(reader_row)
-      self.invalid_row = reader_row unless reader_row.valid?
-      self.rows << reader_row
+    def push(row)
+      self.invalid_row = row unless row.valid?
+      self.rows << row
     end
 
     def valid?
@@ -19,6 +19,11 @@ module RailsSpreadsheetReader
 
     def errors
       self.invalid_row.errors
+    end
+
+    def set_invalid_row(row, model_with_errors)
+      row.copy_errors(model_with_errors)
+      self.invalid_row = row
     end
 
   end

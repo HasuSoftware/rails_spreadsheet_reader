@@ -1,4 +1,4 @@
-class UserInvalidSpreadsheet < RailsSpreadsheetReader::Row
+class UserInvalidSpreadsheet < RailsSpreadsheetReader::Base
 
   attr_accessor :username, :email, :gender
 

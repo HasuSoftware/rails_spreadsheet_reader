@@ -6,33 +6,33 @@ def test_file(filename, ext)
   File.open(File.join TEST_DIR, "#{filename}.#{ext}")
 end
 
-describe RailsSpreadsheetReader::Row do
+describe RailsSpreadsheetReader::Base do
 
   it 'Row#columns' do
-    expect { RailsSpreadsheetReader::Row.columns }.to raise_error
+    expect { RailsSpreadsheetReader::Base.columns }.to raise_error
   end
 
   it 'Row#format' do
-    expect { RailsSpreadsheetReader::Row.format }.to raise_error
+    expect { RailsSpreadsheetReader::Base.format }.to raise_error
   end
 
   it 'Row#formatted_hash' do
-    expect { RailsSpreadsheetReader::Row.formatted_hash(%w(username email@test.com male)) }.to raise_error
+    expect { RailsSpreadsheetReader::Base.formatted_hash(%w(username email@test.com male)) }.to raise_error
   end
 
   it 'Row#valid? should work as desired' do
-    expect(RailsSpreadsheetReader::Row.new.valid?).to eq(true)
+    expect(RailsSpreadsheetReader::Base.new.valid?).to eq(true)
   end
 
   it 'Row#open_spreadsheet' do
     file = test_file 'users', :xlsx
-    row = RailsSpreadsheetReader::Row.open_spreadsheet file
+    row = RailsSpreadsheetReader::Base.open_spreadsheet file
     expect(row).not_to eq(false)
   end
 
   it 'Row#read_spreadsheet' do
     file = test_file 'users', :xlsx
-    expect { RailsSpreadsheetReader::Row.read_spreadsheet(file) }.to raise_error
+    expect { RailsSpreadsheetReader::Base.read_spreadsheet(file) }.to raise_error
   end
 
   it '#formatted_hash should work in a derived class which overrides "columns" method' do

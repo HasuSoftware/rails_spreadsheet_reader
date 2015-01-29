@@ -8,7 +8,7 @@ class <%= @spreadsheet_name %>Spreadsheet < RailsSpreadsheetReader::Row
 
   # map this model attributes to your spreadsheet attributes
   # you can use a hash { attr1: 0, attr2: 1, attr3: 2, ... }
-  # or a array %(attr1 attr2 attr3 ...)
+  # or a array %w(attr1 attr2 attr3 ...)
 
   def self.columns
     # return { attr1: 0, attr2: 1, ... }
@@ -43,7 +43,7 @@ class <%= @spreadsheet_name %>Spreadsheet < RailsSpreadsheetReader::Row
     #
   end
 
-  def self.after_multiple_rows_validation(row_collection)
+  def self.persist(row_collection)
     # This method is called after the self.validate_multiple_rows method
     # only if it have not raised an exception. The idea of this method
     # is to persist the row's data. If there was an error with a certain
@@ -52,13 +52,12 @@ class <%= @spreadsheet_name %>Spreadsheet < RailsSpreadsheetReader::Row
     # row object.
     #
     # Example:
-    # def self.after_multiple_rows_validation(row_collection)
+    # def self.persist(row_collection)
     #   User.transaction do
     #     row_collection.rows.each do |row|
     #       user = User.new(row.as_json)
     #       unless user.save
-    #         row.copy_errors(user) # use copy error to pass the model errors to the row.
-    #         row_collection.invalid_row = row
+    #         row_collection.set_invalid_row(row, user) # pass the model with errors as second parameter
     #         rollback # use the rollback helper to rollback the transaction.
     #       end
     #     end
