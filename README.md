@@ -1,6 +1,6 @@
 # RailsSpreadsheetReader
 
-TODO: Write a gem description
+Provides an easy way to add model-based validations to excel files.
 
 ## Installation
 
@@ -18,7 +18,16 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Run
+    $ rails g spreadsheet name
+
+to create a spreadsheet reader into app/spreadsheet_reader directory.
+
+Edit the columns, validate_multiple_rows and persist methods depending on your use-case.
+
+## Example
+
+TODO: Add example app link
 
 ## Contributing
 
