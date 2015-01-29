@@ -27,7 +27,7 @@ Edit the columns, validate_multiple_rows and persist methods depending on your u
 
 ## Example
 
-TODO: Add example app link
+Example rails app: https://github.com/muZk/spreadsheet_reader_example
 
 ## Contributing
 
