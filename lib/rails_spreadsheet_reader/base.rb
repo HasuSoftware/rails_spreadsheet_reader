@@ -142,7 +142,7 @@ module RailsSpreadsheetReader
     # def self.persist(row_collection)
     #   User.transaction do
     #     row_collection.rows.each do |row|
-    #       user = User.new(row.as_json)
+    #       user = User.new(attr1: row.attr1, attr2: row.attr2, ...)
     #       unless user.save
     #         row_collection.set_invalid_row(row, user)  # pass the model with errors as second parameter
     #         rollback # use the rollback helper to rollback the transaction.
