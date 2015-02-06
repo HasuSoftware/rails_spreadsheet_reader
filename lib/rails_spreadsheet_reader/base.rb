@@ -208,6 +208,7 @@ module RailsSpreadsheetReader
         hash = formatted_hash(spreadsheet.row(number))
         hash[:row_number] = number
         row_collection.push self.new(hash)
+        # TODO: FIXME, set row_collection.invalid :)
         raise 'Invalid Row in Excel' unless row_collection.valid?
       end
     end
