@@ -1,6 +1,8 @@
 require 'spec_helper'
+require_relative 'models/invalid_column_spreadsheet'
 require_relative 'models/user_spreadsheet'
 require_relative 'models/user_invalid_spreadsheet'
+require_relative 'models/empty_column_spreadsheet.rb'
 
 def test_file(filename, ext)
   File.open(File.join TEST_DIR, "#{filename}.#{ext}")
@@ -8,31 +10,31 @@ end
 
 describe RailsSpreadsheetReader::Base do
 
-  it 'Base#columns' do
-    expect { RailsSpreadsheetReader::Base.columns }.to raise_error
+  it 'not implementing columns method should raise an error' do
+    expect { RailsSpreadsheetReader::Base.columns }.to raise_error(RailsSpreadsheetReader::Base::MethodNotImplementedError)
   end
 
-  it 'Base#format' do
-    expect { RailsSpreadsheetReader::Base.format }.to raise_error
+  it 'format method should raise an error if columns method is not valid' do
+    expect { InvalidColumnSpreadsheet.format }.to raise_error(RailsSpreadsheetReader::Base::InvalidTypeError)
   end
 
-  it 'Base#formatted_hash' do
-    expect { RailsSpreadsheetReader::Base.formatted_hash(%w(username email@test.com male)) }.to raise_error
+  it 'formatted_hash should raise an error if columns method is not valid' do
+    expect { InvalidColumnSpreadsheet.formatted_hash(%w(username email@test.com male)) }.to raise_error(RailsSpreadsheetReader::Base::InvalidTypeError)
   end
 
-  it 'Base#valid? should work as desired' do
+  it 'Base.valid? should be true by default' do
     expect(RailsSpreadsheetReader::Base.new.valid?).to eq(true)
   end
 
-  it 'Base#open_spreadsheet' do
+  it 'Base.open_spreadsheet should return a Roo::Base instance' do
     file = test_file 'users', :csv
-    row = RailsSpreadsheetReader::Base.open_spreadsheet file
-    expect(row).not_to eq(false)
+    roo_row = RailsSpreadsheetReader::Base.open_spreadsheet file
+    expect(roo_row.is_a?(Roo::Base)).not_to eq(false)
   end
 
-  it 'Base#read_spreadsheet' do
+  it 'empty columns should raise an error' do
     file = test_file 'users', :csv
-    expect { RailsSpreadsheetReader::Base.read_spreadsheet(file) }.to raise_error
+    expect { EmptyColumnSpreadsheet.read_spreadsheet(file) }.to raise_error(RailsSpreadsheetReader::Base::MethodNotImplementedError)
   end
 
   it '#formatted_hash should work in a derived class which overrides "columns" method' do
@@ -69,14 +71,6 @@ describe RailsSpreadsheetReader::Base do
     expect(row_collection.valid?).to eq(false)
     expect(row_collection.invalid_row.row_number).to eq(2)
     expect(row_collection.errors.full_messages).to eq(["Email can't be blank"])
-  end
-
-  it '#read_spreadsheet should be invalid because #validate_multiple_rows raises an exception' do
-    file = test_file 'users_invalid', :csv
-    row_collection = UserInvalidSpreadsheet.read_spreadsheet(file)
-    expect(row_collection.valid?).to eq(false)
-    expect(row_collection.invalid_row.row_number).to eq(5)
-    expect(row_collection.errors.full_messages).to eq(['Username is unique'])
   end
 
 end

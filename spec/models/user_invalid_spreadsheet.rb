@@ -14,7 +14,7 @@ class UserInvalidSpreadsheet < RailsSpreadsheetReader::Base
       if usernames.has_key?(row.username)
         row_collection.invalid_row = row
         row.errors[:username] = 'is unique'
-        raise 'Validation Error'
+        break
       else
         usernames[row.username] = true
       end

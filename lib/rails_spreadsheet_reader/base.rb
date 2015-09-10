@@ -106,18 +106,16 @@ module RailsSpreadsheetReader
     # This method is called when all rows of row_collection are valid. The main
     # idea of this method is to run validations that have to do with
     # the set of rows of the excel. For example, you can check here if a
-    # excel column is unique. It have to raise an exception if there was
-    # an error with a certain row.
+    # excel column is unique:
     #
     # Example:
     #
     # def self.validate_multiple_rows(row_collection)
     #   username_list = []
-    #   row_collection.rows.each do |row|
+    #   row_collection.each do |row|
     #     if username_list.include?(row.username)
     #       row_collection.invalid_row = row
     #       row.errors[:username] = 'is unique'
-    #       raise 'Validation Error'
     #     else
     #       username_list << row.username
     #     end
@@ -141,7 +139,7 @@ module RailsSpreadsheetReader
     # Example:
     # def self.persist(row_collection)
     #   User.transaction do
-    #     row_collection.rows.each do |row|
+    #     row_collection.each do |row|
     #       user = User.new(attr1: row.attr1, attr2: row.attr2, ...)
     #       unless user.save
     #         row_collection.set_invalid_row(row, user)  # pass the model with errors as second parameter
@@ -175,20 +173,16 @@ module RailsSpreadsheetReader
     def self.read_spreadsheet(spreadsheet_file)
 
       if columns.empty?
-        raise NotImplementedError
+        raise MethodNotImplementedError
       end
 
       spreadsheet = open_spreadsheet(spreadsheet_file)
       row_collection = RailsSpreadsheetReader::RowCollection.new
 
-      begin
-        validate_rows(spreadsheet, row_collection)
-        validate_multiple_rows(row_collection)
-        persist(row_collection)
-        row_collection
-      rescue
-        row_collection
-      end
+      validate_rows(spreadsheet, row_collection)
+      validate_multiple_rows(row_collection) if row_collection.valid?
+      persist(row_collection) if row_collection.valid?
+      row_collection
 
     end
 
@@ -200,16 +194,14 @@ module RailsSpreadsheetReader
 
     private
 
-    # Calls row.valid? on every row of the spreadsheet. Raises an exception
-    # when row_collection.valid? returns false. It happens when
-    # the current row is an invalid ActiveModel::Model.
+    # Calls row.valid? on every row of the spreadsheet.
+    # Stops when a row is an invalid ActiveModel::Model.
     def self.validate_rows(spreadsheet, row_collection)
       (starting_row..spreadsheet.last_row).each do |number|
         hash = formatted_hash(spreadsheet.row(number))
         hash[:row_number] = number
         row_collection.push self.new(hash)
-        # TODO: FIXME, set row_collection.invalid :)
-        raise 'Invalid Row in Excel' unless row_collection.valid?
+        break if row_collection.invalid?
       end
     end
 
