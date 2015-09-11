@@ -16,7 +16,7 @@ module RailsSpreadsheetReader
     # Copy a ActiveModel::Model errors
     def copy_errors(model)
       model.errors.each do |key, value|
-        self.errors[key] = value
+        errors.add(key, value)
       end
     end
 

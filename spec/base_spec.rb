@@ -73,4 +73,14 @@ describe RailsSpreadsheetReader::Base do
     expect(row_collection.errors.full_messages).to eq(["Email can't be blank"])
   end
 
+  it 'copy_errors' do
+    user_spreadsheet = UserSpreadsheet.new
+    user_spreadsheet.errors.add(:username, 'is unique')
+    expect(user_spreadsheet.valid?).to eq(false)
+    expect(user_spreadsheet.invalid?).to eq(true)
+    valid = UserSpreadsheet.new
+    valid.copy_errors(user_spreadsheet)
+    expect(valid.valid?).to eq(false)
+  end
+
 end

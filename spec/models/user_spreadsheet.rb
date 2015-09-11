@@ -8,4 +8,8 @@ class UserSpreadsheet < RailsSpreadsheetReader::Base
     { :username => 0, :email => 1, :gender => 2 }
   end
 
+  def make_invalid
+    errors[:username] = 'is invalid'
+  end
+
 end
