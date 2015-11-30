@@ -13,11 +13,26 @@ module RailsSpreadsheetReader
 
     attr_accessor :row_number
 
-    # Copy a ActiveModel::Model errors
-    def copy_errors(model)
-      model.errors.full_messages.each do |msg|
-        errors[:base] << msg
+    attr_accessor :models_with_errors
+
+    # Errors should be copied in a validation callback because valid?
+    # method flushes errors.
+    validate :copy_errors_on_validation
+
+    def copy_errors_on_validation
+      self.models_with_errors ||= []
+      self.models_with_errors.each do |model|
+        model.errors.full_messages.each do |msg|
+          errors.add(:base, msg)
+        end
       end
+    end
+
+    # Models are added models_with_errors. They will be copied in to self.errors on
+    # copy_errors_on_validation callback
+    def copy_errors(model)
+      self.models_with_errors ||= []
+      self.models_with_errors << model
     end
 
     # Defines the starting row of the excel where the class should start reading the data.

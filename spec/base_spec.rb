@@ -78,7 +78,7 @@ describe RailsSpreadsheetReader::Base do
     user_spreadsheet.errors.add(:username, 'is unique')
     expect(user_spreadsheet.valid?).to eq(false)
     expect(user_spreadsheet.invalid?).to eq(true)
-    valid = UserSpreadsheet.new
+    valid = EmptyColumnSpreadsheet.new
     valid.copy_errors(user_spreadsheet)
     expect(valid.valid?).to eq(false)
   end
