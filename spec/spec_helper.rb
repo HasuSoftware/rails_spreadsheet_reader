@@ -18,6 +18,8 @@
 require File.expand_path('../../lib/rails_spreadsheet_reader', __FILE__)
 TEST_DIR =  File.join(File.dirname(__FILE__), 'files')
 
+require_relative 'db/database'
+
 RSpec.configure do |config|
 # The settings below are suggested to provide a good initial experience
 # with RSpec, but feel free to customize to your heart's content.

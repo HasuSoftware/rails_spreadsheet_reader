@@ -7,32 +7,54 @@ module RailsSpreadsheetReader
   class Base
 
     include ActiveModel::Model
+    include ActiveModel::Validations::Callbacks
 
     class MethodNotImplementedError < StandardError; end
     class InvalidTypeError < StandardError; end
 
     attr_accessor :row_number
+    attr_accessor :model_with_error
+    attr_accessor :copied_errors
+    attr_accessor :collection
 
-    attr_accessor :models_with_errors
+    BASE_ATTRIBUTES = %w(row_number model_with_error copied_errors collection)
 
-    # Errors should be copied in a validation callback because valid?
-    # method flushes errors.
-    validate :copy_errors_on_validation
+    validate :check_model_with_error
 
-    def copy_errors_on_validation
-      self.models_with_errors ||= []
-      self.models_with_errors.each do |model|
-        model.errors.full_messages.each do |msg|
-          errors.add(:base, msg)
+    def check_model_with_error
+      if model_with_error.present? and model_with_error.errors.any?
+        model_with_error.errors.full_messages.each do |msg|
+          @errors.add(:base, msg)
         end
       end
     end
 
-    # Models are added models_with_errors. They will be copied in to self.errors on
-    # copy_errors_on_validation callback
-    def copy_errors(model)
-      self.models_with_errors ||= []
-      self.models_with_errors << model
+    def self.last_record
+      @last_record ||= nil
+    end
+
+    def self.last_record=(record)
+      @last_record = record
+    end
+
+    def models
+      fail(
+          MethodNotImplementedError,
+          'Please implement this method in your class.'
+      )
+    end
+
+    def persist
+      models = self.class.models.is_a?(Array) ? self.class.models : [self.class.models]
+      models.each do |model|
+        method_name = model.model_name.human.downcase
+        if respond_to?(method_name)
+          instance = model.new(send(model.model_name.human.downcase))
+        else
+          instance = model.new(as_json(except: BASE_ATTRIBUTES))
+        end
+        instance.save!
+      end
     end
 
     # Defines the starting row of the excel where the class should start reading the data.
@@ -60,7 +82,7 @@ module RailsSpreadsheetReader
     # == Returns:
     # An Array or a Hash defining the columns of the excel.
     #
-    def self.columns
+    def self.headers
       fail(
           MethodNotImplementedError,
           'Please implement this method in your class.'
@@ -111,6 +133,7 @@ module RailsSpreadsheetReader
     #   Array or Hash of values which represents an excel column.
 
     def initialize(arr_or_hash = {})
+      self.copied_errors = ActiveModel::Errors.new(self)
       if arr_or_hash.is_a?(Array)
         super(self.class.formatted_hash(arr_or_hash))
       else
@@ -167,11 +190,27 @@ module RailsSpreadsheetReader
     # == Parameters:
     # row_collection::
     #   SpreadsheetReader::RowCollection instance
-    def self.persist(row_collection)
-
+    def self.persist(collection)
+      ActiveRecord::Base.transaction do
+        collection.each do |row|
+          # If any of validations fail ActiveRecord::RecordInvalid gets raised.
+          # If any of the before_* callbacks return false the action is cancelled and save! raises ActiveRecord::RecordNotSaved.
+          begin
+            row.persist
+          rescue ActiveRecord::RecordInvalid => e
+            row.model_with_error = e.record
+            collection.invalid_row = row
+            rollback
+          rescue ActiveRecord::RecordNotSaved => e
+            row.model_with_error = e.record
+            collection.invalid_row = row
+            rollback
+          end
+        end
+      end
     end
 
-    def self.open_spreadsheet(spreadsheet_file)
+    def self.open(spreadsheet_file)
       Roo::Spreadsheet.open(spreadsheet_file)
     end
 
@@ -185,20 +224,27 @@ module RailsSpreadsheetReader
     # == Returns:
     # row_collection::
     #   SpreadsheetReader::RowCollection instance
-    def self.read_spreadsheet(spreadsheet_file)
+    def self.read(spreadsheet_file)
 
-      if columns.empty?
+      if headers.empty?
         raise MethodNotImplementedError
       end
 
-      spreadsheet = open_spreadsheet(spreadsheet_file)
-      row_collection = RailsSpreadsheetReader::RowCollection.new
+      spreadsheet = open(spreadsheet_file)
+      collection = RailsSpreadsheetReader::RowCollection.new
 
-      validate_rows(spreadsheet, row_collection)
-      validate_multiple_rows(row_collection) if row_collection.valid?
-      persist(row_collection) if row_collection.valid?
-      row_collection
+      # Populate collection
+      (starting_row..spreadsheet.last_row).each do |row_number|
+        parameters = formatted_hash(spreadsheet.row(row_number))
+        parameters[:row_number] = row_number
+        collection << self.new(parameters)
+      end
 
+      # Validation and persist
+      validate_multiple_rows(collection) if collection.valid?
+      persist(collection) if collection.valid?
+
+      collection
     end
 
     # Transform an array [a0, a1, a2, ...] to a Hash { a0 => 0, a1 => 1, etc }
@@ -213,9 +259,9 @@ module RailsSpreadsheetReader
     # Stops when a row is an invalid ActiveModel::Model.
     def self.validate_rows(spreadsheet, row_collection)
       (starting_row..spreadsheet.last_row).each do |number|
-        hash = formatted_hash(spreadsheet.row(number))
-        hash[:row_number] = number
-        row_collection.push self.new(hash)
+        parameters = formatted_hash(spreadsheet.row(number))
+        parameters[:row_number] = number
+        row_collection.push self.new(parameters)
         break if row_collection.invalid?
       end
     end
@@ -223,8 +269,8 @@ module RailsSpreadsheetReader
     # Returns the Hash representation of the defined columns
     def self.format
 
-      if columns.is_a?(Array) or columns.is_a?(Hash)
-        return columns.is_a?(Array) ? array_to_hash(columns) : columns
+      if headers.is_a?(Array) or headers.is_a?(Hash)
+        return headers.is_a?(Array) ? array_to_hash(headers) : headers
       end
 
       fail(

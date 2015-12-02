@@ -1,6 +1,6 @@
 class InvalidColumnSpreadsheet < RailsSpreadsheetReader::Base
 
-  def self.columns
+  def self.headers
     10
   end
 
