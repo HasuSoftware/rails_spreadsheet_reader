@@ -3,6 +3,9 @@ require_relative 'models/invalid_column_spreadsheet'
 require_relative 'models/user_spreadsheet'
 require_relative 'models/user_invalid_spreadsheet'
 require_relative 'models/empty_column_spreadsheet.rb'
+require_relative 'models/student_benefit_spreadsheet.rb'
+require_relative 'models/employee_enterprise_spreadsheet.rb'
+require_relative 'models/custom_persist_spreadsheet.rb'
 
 def test_file(filename, ext)
   File.open(File.join TEST_DIR, "#{filename}.#{ext}")
@@ -97,6 +100,38 @@ describe RailsSpreadsheetReader::Base do
     UserSpreadsheet.models
     row = UserSpreadsheet.new(params)
     expect { row.persist }.to raise_error(ActiveRecord::RecordInvalid)
+  end
+
+  it 'Should not save records to database when failing' do
+    file = test_file 'student_benefit_invalid', :csv
+    student_count = Student.count
+    benefit_count = Benefit.count
+    result = StudentBenefitSpreadsheet.read(file)
+    expect(result.valid?).to eq(false)
+    expect(student_count).to eq(Student.count)
+    expect(benefit_count).to eq(Benefit.count)
+  end
+
+  it 'Should save multiple records to database' do
+    file = test_file 'student_benefit', :csv
+    student_count = Student.count
+    benefit_count = Benefit.count
+    result = StudentBenefitSpreadsheet.read(file)
+    expect(result.valid?).to eq(true)
+    expect(student_count).to eq(Student.count - result.count)
+    expect(benefit_count).to eq(Benefit.count - result.count)
+  end
+
+  it 'Spreadsheet.models order does matter when persisting' do
+    file = test_file 'employee_enterprise', :csv
+    result = EmployeeEnterpriseSpreadsheet.read(file)
+    expect(result.valid?).to eq(true)
+  end
+
+  it 'Spreadsheet with custom persist works as expected' do
+    file = test_file 'employee_enterprise', :csv
+    result = CustomPersistSpreadsheet.read(file)
+    expect(result.valid?).to eq(true)
   end
 
 end

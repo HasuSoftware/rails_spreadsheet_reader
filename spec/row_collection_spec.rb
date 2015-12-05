@@ -32,6 +32,4 @@ describe RailsSpreadsheetReader::RowCollection do
     expect(collection.invalid?).to eq(true)
   end
 
-  # TODO: test a spreadsheet with two models
-
 end

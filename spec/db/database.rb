@@ -21,6 +21,21 @@ ActiveRecord::Schema.define do
     t.string :name
     t.string :gender
   end
+  create_table :students, force: true do |t|
+    t.string :code
+    t.string :name
+  end
+  create_table :benefits, force: true do |t|
+    t.string :code
+    t.string :name
+  end
+  create_table :employees, force: true do |t|
+    t.string :name
+    t.references :enterprise
+  end
+  create_table :enterprises, force: true do |t|
+    t.string :name
+  end
 end
 
 # Define the models
@@ -36,4 +51,24 @@ class User < ActiveRecord::Base
     User.new(username: 'username')
   end
 
+end
+
+class Student < ActiveRecord::Base
+  validates_uniqueness_of :code
+  validates_presence_of :code
+end
+
+class Benefit < ActiveRecord::Base
+  validates_uniqueness_of :code
+  validates_presence_of :code
+end
+
+class Employee < ActiveRecord::Base
+  belongs_to :enterprise
+end
+
+class Enterprise < ActiveRecord::Base
+  has_many :employees
+  validates_presence_of :name
+  validates_uniqueness_of :name
 end

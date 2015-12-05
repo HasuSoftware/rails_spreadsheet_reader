@@ -36,6 +36,10 @@ module RailsSpreadsheetReader
       self.rows.each(&block)
     end
 
+    def count
+      self.rows.count
+    end
+
   end
 
 end
