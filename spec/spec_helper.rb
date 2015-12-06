@@ -20,6 +20,8 @@ TEST_DIR =  File.join(File.dirname(__FILE__), 'files')
 
 require_relative 'db/database'
 
+Dir["#{File.dirname(__FILE__)}/spreadsheets/*.rb"].each {|file| require file }
+
 RSpec.configure do |config|
 # The settings below are suggested to provide a good initial experience
 # with RSpec, but feel free to customize to your heart's content.

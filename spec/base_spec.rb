@@ -1,11 +1,4 @@
 require 'spec_helper'
-require_relative 'models/invalid_column_spreadsheet'
-require_relative 'models/user_spreadsheet'
-require_relative 'models/user_invalid_spreadsheet'
-require_relative 'models/empty_column_spreadsheet.rb'
-require_relative 'models/student_benefit_spreadsheet.rb'
-require_relative 'models/employee_enterprise_spreadsheet.rb'
-require_relative 'models/custom_persist_spreadsheet.rb'
 
 def test_file(filename, ext)
   File.open(File.join TEST_DIR, "#{filename}.#{ext}")
