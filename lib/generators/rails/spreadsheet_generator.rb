@@ -7,13 +7,18 @@ module Rails
 
       source_root File.expand_path('../templates', __FILE__)
       argument :name, :type => :string
+      class_option :models, type: :array, aliases: '-m', default: ['Model1', 'Model2']
+      class_option :simple, default: false
+      class_option :attributes, aliases: '-a', default: ['attr1', 'attr2']
 
       def generate_spreadsheet
+        puts 'hola'
         file_prefix = set_filename(name)
         @spreadsheet_name = set_spreadsheet_name(name)
-        template 'spreadsheet.rb', File.join(
-            'app/spreadsheet_reader', "#{file_prefix}_spreadsheet.rb"
-        )
+        @models = @options[:models]
+        @simple = @options[:simple]
+        @attributes = @options[:attributes]
+        template 'spreadsheet.rb', "app/spreadsheet_reader/#{file_prefix}_spreadsheet.rb"
       end
 
       private

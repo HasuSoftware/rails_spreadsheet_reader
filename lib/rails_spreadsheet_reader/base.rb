@@ -70,12 +70,12 @@ module RailsSpreadsheetReader
     # a Array of strings/symbols (representing columns names) or a Hash (which map column names to columns indexes).
     #
     # Array Example
-    #   def self.columns
+    #   def self.headers
     #     [:username, :email, :gender]
     #   end
     #
     # Hash Example
-    #   def self.columns
+    #   def self.headers
     #     { :username => 0, :email => 1, :gender => 2 }
     #   end
     #
@@ -95,11 +95,11 @@ module RailsSpreadsheetReader
     # order of the columns.
     #
     # For example, given the following self.columns definition
-    #   def self.columns
+    #   def self.headers
     #     [:username, :email, :gender]
     #   end
     # Or
-    #   def self.columns
+    #   def self.headers
     #     { :username => 0, :email => 1, :gender => 2 }
     #   end
     # Row.formatted([username email@test.cl male]) will return

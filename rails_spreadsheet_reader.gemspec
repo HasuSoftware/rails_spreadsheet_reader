@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'factory_girl', '~> 4.4'
   spec.add_development_dependency 'sqlite3', '~> 1.3'
+  spec.add_development_dependency 'generator_spec', '~> 0.9'
 
   spec.add_dependency 'roo', '~> 1.13'
   spec.add_dependency 'rails', '~> 4.2.0'
