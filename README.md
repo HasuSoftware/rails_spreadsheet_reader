@@ -6,7 +6,7 @@ Provides an easy way to add model-based validations to excel files.
 
 Add this line to your application's Gemfile:
 
-    gem 'rails_spreadsheet_reader'
+    gem 'rails_spreadsheet_reader', '~> 0.2'
 
 And then execute:
 
@@ -23,8 +23,6 @@ Run
     $ rails g spreadsheet name
 
 to create a spreadsheet reader into app/spreadsheet_reader directory.
-
-Edit the **self.columns**, **self.validate_multiple_rows** and **self.persist** methods depending on your use-case.
 
 ## Example
 
