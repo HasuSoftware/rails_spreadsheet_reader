@@ -13,17 +13,17 @@ module RailsSpreadsheetReader
     class InvalidTypeError < StandardError; end
 
     attr_accessor :row_number
-    attr_accessor :model_with_error
+    attr_accessor :record_with_error
     attr_accessor :copied_errors
     attr_accessor :collection
 
-    BASE_ATTRIBUTES = %w(row_number model_with_error copied_errors collection)
+    BASE_ATTRIBUTES = %w(row_number record_with_error copied_errors collection)
 
-    validate :check_model_with_error
+    validate :check_record_with_error
 
-    def check_model_with_error
-      if model_with_error.present? and model_with_error.errors.any?
-        model_with_error.errors.full_messages.each do |msg|
+    def check_record_with_error
+      if record_with_error.present? and record_with_error.errors.any?
+        record_with_error.errors.full_messages.each do |msg|
           @errors.add(:base, msg)
         end
       end
@@ -141,70 +141,28 @@ module RailsSpreadsheetReader
       end
     end
 
-    # This method is called when all rows of row_collection are valid. The main
-    # idea of this method is to run validations that have to do with
-    # the set of rows of the excel. For example, you can check here if a
-    # excel column is unique:
-    #
-    # Example:
-    #
-    # def self.validate_multiple_rows(row_collection)
-    #   username_list = []
-    #   row_collection.each do |row|
-    #     if username_list.include?(row.username)
-    #       row_collection.invalid_row = row
-    #       row.errors[:username] = 'is unique'
-    #     else
-    #       username_list << row.username
-    #     end
-    #   end
-    # end
-    #
-    # == Parameters:
-    # row_collection::
-    #   SpreadsheetReader::RowCollection instance
-    def self.validate_multiple_rows(row_collection)
-
-    end
-
-    # This method is called after the self.validate_multiple_rows method
-    # only if it have not raised an exception. The idea of this method
-    # is to persist the row's data. If there was an error with a certain
-    # row, you have to Rollback the valid transactions, set the
-    # invalid error to the row_collection and set the row errors to the
-    # row object.
-    #
-    # Example:
-    # def self.persist(row_collection)
-    #   User.transaction do
-    #     row_collection.each do |row|
-    #       user = User.new(attr1: row.attr1, attr2: row.attr2, ...)
-    #       unless user.save
-    #         row_collection.set_invalid_row(row, user)  # pass the model with errors as second parameter
-    #         rollback # use the rollback helper to rollback the transaction.
-    #       end
-    #     end
-    #   end
-    # end
+    # Persist all rows of collection if they all are valid
     #
     # == Parameters:
     # row_collection::
     #   SpreadsheetReader::RowCollection instance
     def self.persist(collection)
-      ActiveRecord::Base.transaction do
-        collection.each do |row|
-          # If any of validations fail ActiveRecord::RecordInvalid gets raised.
-          # If any of the before_* callbacks return false the action is cancelled and save! raises ActiveRecord::RecordNotSaved.
-          begin
-            row.persist
-          rescue ActiveRecord::RecordInvalid => e
-            row.model_with_error = e.record
-            collection.invalid_row = row
-            rollback
-          rescue ActiveRecord::RecordNotSaved => e
-            row.model_with_error = e.record
-            collection.invalid_row = row
-            rollback
+      if collection.valid?
+        ActiveRecord::Base.transaction do
+          collection.each do |row|
+            # If any of validations fail ActiveRecord::RecordInvalid gets raised.
+            # If any of the before_* callbacks return false the action is cancelled and save! raises ActiveRecord::RecordNotSaved.
+            begin
+              row.persist
+            rescue ActiveRecord::RecordInvalid => e
+              row.record_with_error = e.record
+              collection.invalid_row = row
+              rollback
+            rescue ActiveRecord::RecordNotSaved => e
+              row.model_with_error = e.record
+              collection.invalid_row = row
+              rollback
+            end
           end
         end
       end
@@ -214,9 +172,8 @@ module RailsSpreadsheetReader
       Roo::Spreadsheet.open(spreadsheet_file)
     end
 
-    # Read and validates the given #spreadsheet_file. First calls
-    # #validate_rows method which run #ActiveModel::Model.valid? on each row.
-    # Then calls #validate_multiple_rows and finally ends with #persist
+    # Read and validates the given #spreadsheet_file. Persistence is triggered
+    # after all validation pass
     #
     # == Parameters:
     # spreadsheet_file::
@@ -237,12 +194,12 @@ module RailsSpreadsheetReader
       (starting_row..spreadsheet.last_row).each do |row_number|
         parameters = formatted_hash(spreadsheet.row(row_number))
         parameters[:row_number] = row_number
+        parameters[:collection] = collection
         collection << self.new(parameters)
       end
 
       # Validation and persist
-      validate_multiple_rows(collection) if collection.valid?
-      persist(collection) if collection.valid?
+      persist(collection)
 
       collection
     end
@@ -254,17 +211,6 @@ module RailsSpreadsheetReader
     end
 
     private
-
-    # Calls row.valid? on every row of the spreadsheet.
-    # Stops when a row is an invalid ActiveModel::Model.
-    def self.validate_rows(spreadsheet, row_collection)
-      (starting_row..spreadsheet.last_row).each do |number|
-        parameters = formatted_hash(spreadsheet.row(number))
-        parameters[:row_number] = number
-        row_collection.push self.new(parameters)
-        break if row_collection.invalid?
-      end
-    end
 
     # Returns the Hash representation of the defined columns
     def self.format

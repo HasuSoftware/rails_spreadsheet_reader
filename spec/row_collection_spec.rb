@@ -1,8 +1,8 @@
 require 'spec_helper'
-require_relative 'models/invalid_column_spreadsheet'
-require_relative 'models/user_spreadsheet'
-require_relative 'models/user_invalid_spreadsheet'
-require_relative 'models/empty_column_spreadsheet.rb'
+require_relative 'spreadsheets/invalid_column_spreadsheet'
+require_relative 'spreadsheets/user_spreadsheet'
+require_relative 'spreadsheets/user_invalid_spreadsheet'
+require_relative 'spreadsheets/empty_column_spreadsheet.rb'
 
 describe RailsSpreadsheetReader::RowCollection do
 

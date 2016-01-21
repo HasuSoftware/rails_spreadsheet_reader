@@ -1,24 +1,23 @@
 class UserInvalidSpreadsheet < RailsSpreadsheetReader::Base
 
-  attr_accessor :username, :email, :gender
+  attr_accessor :username, :email, :gender, :birthday
 
   validates_presence_of :username
+  validate :uniqueness_of_username
 
-  def self.columns
-    { :username => 0, :email => 1, :gender => 2 }
+  def self.headers
+    { :username => 0, :email => 1, :gender => 2, :birthday => 3 }
   end
 
-  def self.validate_multiple_rows(row_collection)
-    usernames = {}
-    row_collection.rows.each do |row|
-      if usernames.has_key?(row.username)
-        row_collection.invalid_row = row
-        row.errors[:username] = 'is unique'
-        break
-      else
-        usernames[row.username] = true
-      end
+  def uniqueness_of_username
+    if collection.present?
+      detected = collection.rows.find{|r| r.username == self.username and r.row_number < row_number }
+      errors.add(:username, "Username already defined in excel at row #{detected.row_number}") if detected.present?
     end
+  end
+
+  def to_s
+    {username: username, email: email, gender: gender, birthday: birthday}
   end
 
 end

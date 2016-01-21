@@ -13,7 +13,7 @@ class UserSpreadsheet < RailsSpreadsheetReader::Base
   end
 
   def make_invalid
-    self.model_with_error = User.make_invalid
+    self.record_with_error = User.make_invalid
   end
 
 end

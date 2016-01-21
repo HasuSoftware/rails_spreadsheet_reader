@@ -1,4 +1,4 @@
-require 'spec_helper'
+require_relative 'spec_helper'
 
 def test_file(filename, ext)
   File.open(File.join TEST_DIR, "#{filename}.#{ext}")
@@ -72,7 +72,7 @@ describe RailsSpreadsheetReader::Base do
   it 'A row with an invalid record should be invalid' do
     row = UserSpreadsheet.new
     invalid_record = User.make_invalid
-    row.model_with_error = invalid_record
+    row.record_with_error = invalid_record
     expect(row.valid?).to eq(false)
     expect(row.invalid?).to eq(true)
   end
@@ -125,6 +125,13 @@ describe RailsSpreadsheetReader::Base do
     file = test_file 'employee_enterprise', :csv
     result = CustomPersistSpreadsheet.read(file)
     expect(result.valid?).to eq(true)
+  end
+
+  it 'Custom validator using uniqueness inside the same excel' do
+    file = test_file 'users_invalid', :csv
+    result = UserInvalidSpreadsheet.read(file)
+    expect(result.valid?).to eq(false)
+    expect(result.invalid_row.errors[:username]).to eq(["Username already defined in excel at row 4"])
   end
 
 end
