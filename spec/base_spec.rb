@@ -65,8 +65,8 @@ describe RailsSpreadsheetReader::Base do
     file = test_file 'users_invalid', :csv
     row_collection = UserSpreadsheet.read(file)
     expect(row_collection.valid?).to eq(false)
-    expect(row_collection.invalid_row.row_number).to eq(2)
-    expect(row_collection.errors.full_messages).to eq(["Email can't be blank"])
+    expect(row_collection.invalid_rows.first.row_number).to eq(2)
+    expect(row_collection.errors.first.full_messages).to eq(["Email can't be blank"])
   end
 
   it 'A row with an invalid record should be invalid' do
@@ -82,7 +82,7 @@ describe RailsSpreadsheetReader::Base do
     params.delete('id')
     expect(User.exists?(params)).to eq(false)
     row = UserSpreadsheet.new(params)
-    row.persist
+    row.persist!
     expect(User.exists?(params)).to eq(true)
   end
 
@@ -92,7 +92,7 @@ describe RailsSpreadsheetReader::Base do
     UserSpreadsheet.headers
     UserSpreadsheet.models
     row = UserSpreadsheet.new(params)
-    expect { row.persist }.to raise_error(ActiveRecord::RecordInvalid)
+    expect { row.persist! }.to raise_error(ActiveRecord::RecordInvalid)
   end
 
   it 'Should not save records to database when failing' do
@@ -131,7 +131,7 @@ describe RailsSpreadsheetReader::Base do
     file = test_file 'users_invalid', :csv
     result = UserInvalidSpreadsheet.read(file)
     expect(result.valid?).to eq(false)
-    expect(result.invalid_row.errors[:username]).to eq(["Username already defined in excel at row 4"])
+    expect(result.invalid_rows.first.errors[:username]).to eq(["Username already defined in excel at row 4"])
   end
 
 end

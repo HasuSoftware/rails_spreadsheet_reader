@@ -37,14 +37,14 @@ module RailsSpreadsheetReader
       @last_record = record
     end
 
-    def models
+    def self.models
       fail(
           MethodNotImplementedError,
           'Please implement this method in your class.'
       )
     end
 
-    def persist
+    def persist!
       models = self.class.models.is_a?(Array) ? self.class.models : [self.class.models]
       models.each do |model|
         method_name = model.model_name.human.downcase
@@ -153,14 +153,16 @@ module RailsSpreadsheetReader
             # If any of validations fail ActiveRecord::RecordInvalid gets raised.
             # If any of the before_* callbacks return false the action is cancelled and save! raises ActiveRecord::RecordNotSaved.
             begin
-              row.persist
+              row.persist!
             rescue ActiveRecord::RecordInvalid => e
               row.record_with_error = e.record
               collection.invalid_row = row
+              row.check_record_with_error
               rollback
             rescue ActiveRecord::RecordNotSaved => e
               row.model_with_error = e.record
               collection.invalid_row = row
+              row.check_record_with_error
               rollback
             end
           end
@@ -169,7 +171,11 @@ module RailsSpreadsheetReader
     end
 
     def self.open(spreadsheet_file)
-      Roo::Spreadsheet.open(spreadsheet_file)
+      if spreadsheet_file.respond_to?(:original_filename)
+        Roo::Spreadsheet.open(spreadsheet_file.path, extension: File.extname(spreadsheet_file.original_filename).delete('.'))
+      else
+        Roo::Spreadsheet.open(spreadsheet_file)
+      end
     end
 
     # Read and validates the given #spreadsheet_file. Persistence is triggered

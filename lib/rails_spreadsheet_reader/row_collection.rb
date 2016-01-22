@@ -12,16 +12,12 @@ module RailsSpreadsheetReader
       self.rows << row
     end
 
+    def invalid_rows
+      rows.reject(&:valid?)
+    end
+
     def valid?
-      valid = true
-      rows.each do |row|
-        if row.invalid?
-          self.invalid_row = row
-          valid = false
-          break
-        end
-      end
-      valid
+      invalid_rows.empty?
     end
 
     def invalid?
@@ -29,7 +25,7 @@ module RailsSpreadsheetReader
     end
 
     def errors
-      invalid? ? self.invalid_row.errors : []
+      invalid? ? invalid_rows.map(&:errors).flatten : []
     end
 
     def each(&block)

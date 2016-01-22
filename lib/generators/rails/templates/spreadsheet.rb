@@ -20,7 +20,7 @@ class <%= @spreadsheet_name %>Spreadsheet < RailsSpreadsheetReader::Base
 
   # Returns 1 or more ActiveRecord classes where data will be saved
   def self.models
-    <%= @models.count == 1 ? @models.first : @models.join(', ') %>
+    [<%= @models.count == 1 ? @models.first : @models.join(', ') %>]
   end
 
   # Map a spreadsheet instance to model parameters
@@ -31,8 +31,8 @@ class <%= @spreadsheet_name %>Spreadsheet < RailsSpreadsheetReader::Base
   <% end %>
 
   # Persist
-  #def persist
-    # Create or save your record. By default, it will use your methods
+  #def persist!!
+    # create! or save! your records. By default, it will use your methods
     # defined above (<%= @models.map{|m| m.downcase}.join(', ') %>)
   #end
 

@@ -19,7 +19,7 @@ class CustomPersistSpreadsheet < RailsSpreadsheetReader::Base
     { name: enterprise_name }
   end
 
-  def persist
+  def persist!
     enterprise = Enterprise.find_or_create_by(name: enterprise_name)
     Employee.create!(name: enterprise_name, enterprise: enterprise)
   end
